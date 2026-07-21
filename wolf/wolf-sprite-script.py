@@ -14,13 +14,17 @@ res_y = 128
 # The wolf is a small quadruped (~1m long, ~0.6m tall), so it needs a much
 # tighter ortho zoom and a lower aim than the ~1.8m humanoid characters.
 CAMERA_ZOOM = 1.4        # ortho_scale
-TARGET_HEIGHT = 0.30     # camera aim height (mid-body)
+# The wolf armature is stored at 0.55 object scale in wolf.blend (roughly
+# halved so it no longer renders ~2x too big next to the humanoids). Aim ABOVE the little
+# wolf (its total height is only ~0.3) so it drops into the lower third of the
+# tile and reads as standing on the ground rather than floating mid-frame.
+TARGET_HEIGHT = 0.35     # camera aim height (grounds the wolf)
 
 ARMATURE_NAME = "Armature_0"   # the wolf armature object
 
 SHEET_NAME = "wolf.png"
 SHADOW_SHEET_NAME = "wolf-shadow.png"
-SHADOW_OPACITY = 0.45  # 0 = invisible, 1 = solid black Diablo shadow
+SHADOW_OPACITY = 0.6  # 0 = invisible, 1 = solid black Diablo shadow
 KEEP_INDIVIDUAL_FRAMES = False
 TEST_MODE = False
 
@@ -71,7 +75,10 @@ bpy.ops.object.delete()
 key_data = bpy.data.lights.new(name="KeyLight", type='SUN')
 key_obj = bpy.data.objects.new(name="KeyLight", object_data=key_data)
 scene.collection.objects.link(key_obj)
-key_obj.rotation_euler = (0.6, 0, -0.15)
+# A steeper X tilt than the humanoids' 0.6: the wolf is short, so a near-
+# overhead sun tucks its shadow under the belly where it's invisible. 0.85
+# rakes the sun lower so the shadow spills out to screen-right and grounds it.
+key_obj.rotation_euler = (0.85, 0, -0.15)
 key_data.energy = 4.0
 key_data.color = (1.0, 0.95, 0.9)
 key_data.angle = 0.1  # soft shadow edges

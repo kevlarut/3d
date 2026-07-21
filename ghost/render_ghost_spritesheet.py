@@ -16,6 +16,7 @@ TARGET_HEIGHT = 1.1
 SHEET_NAME = "ghost.png"
 SHADOW_SHEET_NAME = "ghost-shadow.png"
 SHADOW_OPACITY = 0.45  # 0 = invisible, 1 = solid black Diablo shadow
+SWIM_HEIGHT_OFFSET = 0.35  # Lifts the horizontal swimming rig to match vertical floating height
 KEEP_INDIVIDUAL_FRAMES = False
 TEST_MODE = False
 
@@ -26,11 +27,11 @@ TEST_MODE = False
 # When you record dedicated attack/hit/death clips later, just repoint the
 # start/end frames below and everything else keeps working.
 ANIMATION_ZONES = [
-    {"name": "Idle (Floating)",        "start": 1,   "end": 57,  "count": 4},
-    {"name": "Walking (Swimming)",     "start": 57,  "end": 129,  "count": 8},
-    {"name": "Attack (Floating)",      "start": 1,  "end": 57,  "count": 8},
-    {"name": "Take Damage (Floating)", "start": 1,  "end": 57,  "count": 4},
-    {"name": "Die (Floating)",         "start": 1,  "end": 57, "count": 8}
+    {"name": "Idle (Floating)",        "start": 1,   "end": 57,  "count": 8},
+    {"name": "Walking (Swimming)",     "start": 57,  "end": 129, "count": 8},
+    {"name": "Attack (Floating)",      "start": 1,   "end": 57,  "count": 8},
+    {"name": "Take Damage (Floating)", "start": 1,   "end": 57,  "count": 4},
+    {"name": "Die (Floating)",         "start": 1,   "end": 57,  "count": 8}
 ]
 
 # ==========================================
@@ -173,9 +174,14 @@ BASE_GLOW    = 2.0
 GLOW_COLOR   = (0.05, 0.85, 0.75)   # blue-green core / shadow tint
 HIGHLIGHT    = (0.85, 1.00, 0.97)   # near-white in lit areas
 RIM_COLOR    = (0.90, 1.00, 1.00)   # white outline
-SHADOW_ALPHA = 0.12                 # transparency in shadow
-HILITE_ALPHA = 0.90                 # opacity in highlights
+SHADOW_ALPHA = 0.03                 # LOWERED: almost completely see-through in shadows
+HILITE_ALPHA = 0.40                 # LOWERED: glassy and spectral even in bright highlights
 RIM_STRENGTH = 3.0
+
+# --- VERTICAL TAIL GRADIENT SETTINGS ---
+TAIL_FADE_MIN = 0.00                # Body transparency at the very tip of the tail
+TAIL_FADE_MAX = 1.00                # Body transparency multiplier at upper chest/head
+TAIL_FADE_TOP = 0.70                # Height (0.0 to 1.0) where full opacity begins
 
 def build_ghost_material():
     old = bpy.data.materials.get("GhostSpectral")
@@ -199,6 +205,21 @@ def build_ghost_material():
     arange.inputs['To Min'].default_value = SHADOW_ALPHA
     arange.inputs['To Max'].default_value = HILITE_ALPHA
     L.new(lum.outputs['Val'], arange.inputs['Value'])
+
+    # --- VERTICAL GRADIENT TO FADE OUT THE BODY TOWARDS THE TAIL ---
+    tex_coord = nd('ShaderNodeTexCoord', -1100, 500)
+    sep_xyz = nd('ShaderNodeSeparateXYZ', -920, 500)
+    z_range = nd('ShaderNodeMapRange', -720, 500)
+    z_range.inputs['From Min'].default_value = 0.0
+    z_range.inputs['From Max'].default_value = TAIL_FADE_TOP
+    z_range.inputs['To Min'].default_value = TAIL_FADE_MIN
+    z_range.inputs['To Max'].default_value = TAIL_FADE_MAX
+    L.new(tex_coord.outputs['Generated'], sep_xyz.inputs['Vector'])
+    L.new(sep_xyz.outputs['Z'], z_range.inputs['Value'])
+
+    body_grad_mult = nd('ShaderNodeMath', -500, 320); body_grad_mult.operation = 'MULTIPLY'
+    L.new(arange.outputs['Result'], body_grad_mult.inputs[0])
+    L.new(z_range.outputs['Result'], body_grad_mult.inputs[1])
 
     # body color: teal in shadow -> white in light
     colmix = nd('ShaderNodeMix', -720, 120); colmix.data_type = 'RGBA'
@@ -242,9 +263,9 @@ def build_ghost_material():
     L.new(body_emit.outputs['Emission'], add.inputs[0])
     L.new(rim_emit.outputs['Emission'], add.inputs[1])
 
-    # final alpha = max(body, rim) * AlphaMult  (AlphaMult drives the death fade)
+    # final alpha = max(body * tail_gradient, rim) * AlphaMult
     amax = nd('ShaderNodeMath', -300, 320); amax.operation = 'MAXIMUM'
-    L.new(arange.outputs['Result'], amax.inputs[0])
+    L.new(body_grad_mult.outputs[0], amax.inputs[0])
     L.new(rim_ramp.outputs['Color'], amax.inputs[1])
     alpha_mult = nd('ShaderNodeValue', -300, 480); alpha_mult.name = "AlphaMult"
     alpha_mult.outputs[0].default_value = 1.0
@@ -282,9 +303,20 @@ def set_ghost_state(name, t):
     scol = (1.0, 0.05, 0.05, 1.0)
     rise = 0.0
     if "attack" in n:
-        glow = BASE_GLOW + (t * t) * 7.0           # energy gathers...
-        if t > 0.8: glow += (t - 0.8) / 0.2 * 4.0  # ...then bursts at the end
-        rise = (1.0 - (1.0 - t) ** 2) * 0.5        # floats upward as it charges
+        # --- NEW BELL-CURVE SURGE ---
+        # Rapidly ramps up to peak at t=0.35 (strike), then smoothly fades back to normal by t=1.0
+        if t < 0.35:
+            intensity = (t / 0.35) ** 1.5          # Fast wind-up
+        else:
+            intensity = ((1.0 - t) / 0.65) ** 1.5  # Smooth fade back to Idle baseline
+
+        glow = BASE_GLOW + intensity * 18.0        # Huge emission spike during strike
+        amult = 1.0 + intensity * 1.5              # Solidifies body opacity with power
+        smix = intensity * 0.8                     # Overrides tint with electric attack energy
+        scol = (0.7, 1.0, 0.95, 1.0)               # Searing white-cyan flash
+        rise = intensity * 0.4                     # Lunges upward at the peak of the strike
+    elif "walking" in n or "swimming" in n or "walk" in n or "swim" in n:
+        rise = SWIM_HEIGHT_OFFSET                  # lift swimming animation to match floating height
     elif "damage" in n or "hit" in n:
         flash = 1.0 - t                            # red on impact, recovers
         smix, glow = flash, BASE_GLOW + flash * 3.0
@@ -380,6 +412,24 @@ elif not TEST_MODE:
         sheet_img.save()
         print(f"Sprite Sheet saved to: {os.path.join(output_path, sheet_name)}")
 
+        # Clean up generated sheet image block from Blender memory
+        if sheet_img.name in bpy.data.images:
+            bpy.data.images.remove(sheet_img)
+
     build_sheet(SHEET_NAME, "")
     build_sheet(SHADOW_SHEET_NAME, "_shadow")
+
+    # ==========================================
+    # 7. CLEANUP
+    # ==========================================
+    print("\nCleaning up temporary shadow platform and data blocks...")
+    if shadow_plane and shadow_plane.name in bpy.data.objects:
+        mesh_data = shadow_plane.data
+        bpy.data.objects.remove(shadow_plane, do_unlink=True)
+        if mesh_data and mesh_data.name in bpy.data.meshes:
+            bpy.data.meshes.remove(mesh_data)
+
+    if shadow_mat and shadow_mat.name in bpy.data.materials:
+        bpy.data.materials.remove(shadow_mat)
+
     print("\n--- SUCCESS ---")

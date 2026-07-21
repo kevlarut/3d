@@ -1,0 +1,30 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 11.01.2012 14:57:12
+
+newmtl Material__1
+	Ns 59.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 1.0000 1.0000 1.0000
+	Kd 1.0000 1.0000 1.0000
+	Ks 0.6030 0.6030 0.6030
+	Ke 0.0000 0.0000 0.0000
+	map_Ka pole_arm_halberd_diff.jpg
+	map_Kd pole_arm_halberd_diff.jpg
+
+newmtl pole_arm_halberd
+	Ns 23.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 1.0000 1.0000 1.0000
+	Kd 1.0000 1.0000 1.0000
+	Ks 0.3060 0.3060 0.3060
+	Ke 0.0000 0.0000 0.0000
+	map_Ka pole_arm_halberd_diff.jpg
+	map_Kd pole_arm_halberd_diff.jpg

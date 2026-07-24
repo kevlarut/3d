@@ -1,6 +1,9 @@
 # Node
 node_modules/
 
+# Python bytecode (scripts/ modules imported by the Blender pipeline)
+__pycache__/
+
 # Transient per-frame renders produced during sprite-sheet stitching
 # (the pipeline deletes these itself; ignore in case a run is interrupted)
 sprites/dir*.png

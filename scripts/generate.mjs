@@ -34,12 +34,17 @@ function fail(msg) {
 const rawArgs = process.argv.slice(2);
 let argFolder = null;
 let scale = null;
+let weapon = null;
 for (let i = 0; i < rawArgs.length; i++) {
   const a = rawArgs[i];
   if (a === "--scale") {
     scale = rawArgs[++i];
   } else if (a.startsWith("--scale=")) {
     scale = a.slice("--scale=".length);
+  } else if (a === "--weapon") {
+    weapon = rawArgs[++i];
+  } else if (a.startsWith("--weapon=")) {
+    weapon = a.slice("--weapon=".length);
   } else if (!a.startsWith("-") && argFolder === null) {
     argFolder = a;
   }
@@ -109,6 +114,10 @@ const pyArgs = ["--folder", folder, "--root", REPO_ROOT];
 if (scale != null) {
   pyArgs.push("--scale", String(scale));
   console.log(`[generate] character scale: ${scale}`);
+}
+if (weapon != null) {
+  pyArgs.push("--weapon", String(weapon));
+  console.log(`[generate] weapon: ${weapon}`);
 }
 let cmd, args;
 if (runner.kind === "blender") {

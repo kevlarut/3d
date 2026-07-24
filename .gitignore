@@ -1,0 +1,9 @@
+# Node
+node_modules/
+
+# Transient per-frame renders produced during sprite-sheet stitching
+# (the pipeline deletes these itself; ignore in case a run is interrupted)
+sprites/dir*.png
+
+# Blender auto-save backups
+*.blend1

@@ -1,0 +1,10 @@
+{
+  "name": "3d-sprite-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generate Diablo-style sprite sheets from Mixamo FBX exports with one command.",
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate.mjs"
+  }
+}

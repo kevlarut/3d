@@ -39,7 +39,7 @@ def parse_args():
         argv = argv[argv.index("--") + 1:]
     else:
         argv = argv[1:]  # bpy-module mode: everything after the script name
-    out = {"folder": None, "root": None, "scale": None}
+    out = {"folder": None, "root": None, "scale": None, "weapon": None}
     it = iter(argv)
     for tok in it:
         if tok == "--folder":
@@ -48,6 +48,8 @@ def parse_args():
             out["root"] = next(it, None)
         elif tok == "--scale":
             out["scale"] = next(it, None)
+        elif tok == "--weapon":
+            out["weapon"] = next(it, None)
     if not out["folder"]:
         raise SystemExit("pipeline.py: --folder <dir> is required")
     out["folder"] = os.path.abspath(out["folder"])
@@ -79,6 +81,9 @@ SHADOW_OPACITY = float(os.environ.get("SPRITE_SHADOW_OPACITY", "0.45"))
 # something below 1.0 so it renders shorter than the humans.
 CHAR_SCALE = float(
     ARGS.get("scale") or os.environ.get("SPRITE_SCALE") or "1.0")
+
+# Optional weapon to place in the character's right hand (e.g. "sword").
+WEAPON = ARGS.get("weapon") or os.environ.get("SPRITE_WEAPON") or None
 
 SPRITES_DIR = os.path.join(ROOT, "sprites")
 SHEET_NAME = f"{FOLDER_NAME}.png"
@@ -268,7 +273,20 @@ def build_scene(mapping):
     # 6. Wire the shaded texture into Base Color.
     apply_shaded_texture(meshes)
 
+    # 6b. Optional weapon in the right hand.
+    if WEAPON:
+        attach_weapon(armature)
+
     return zones, armature, meshes
+
+
+def attach_weapon(armature):
+    if WEAPON.lower() != "sword":
+        log(f"unknown weapon '{WEAPON}', skipping")
+        return
+    import weapon as weapon_mod
+    sword, bone = weapon_mod.attach_to_hand(bpy, armature)
+    log(f"attached sword to {bone}")
 
 
 def apply_shaded_texture(meshes):

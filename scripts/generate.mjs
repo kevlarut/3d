@@ -29,9 +29,23 @@ function fail(msg) {
   process.exit(1);
 }
 
-// ---- resolve the target folder -------------------------------------------
+// ---- parse args: an optional positional folder + flags -------------------
+// e.g.  npm run generate -- hobbit-female --scale 0.7
+const rawArgs = process.argv.slice(2);
+let argFolder = null;
+let scale = null;
+for (let i = 0; i < rawArgs.length; i++) {
+  const a = rawArgs[i];
+  if (a === "--scale") {
+    scale = rawArgs[++i];
+  } else if (a.startsWith("--scale=")) {
+    scale = a.slice("--scale=".length);
+  } else if (!a.startsWith("-") && argFolder === null) {
+    argFolder = a;
+  }
+}
+
 // npm sets INIT_CWD to the directory the user ran the command from.
-const argFolder = process.argv[2];
 const folderInput = argFolder || process.env.INIT_CWD || process.cwd();
 const folder = resolve(REPO_ROOT, folderInput);
 
@@ -92,6 +106,10 @@ if (!runner) {
 
 // ---- run it ---------------------------------------------------------------
 const pyArgs = ["--folder", folder, "--root", REPO_ROOT];
+if (scale != null) {
+  pyArgs.push("--scale", String(scale));
+  console.log(`[generate] character scale: ${scale}`);
+}
 let cmd, args;
 if (runner.kind === "blender") {
   cmd = runner.bin;

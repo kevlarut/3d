@@ -39,13 +39,15 @@ def parse_args():
         argv = argv[argv.index("--") + 1:]
     else:
         argv = argv[1:]  # bpy-module mode: everything after the script name
-    out = {"folder": None, "root": None}
+    out = {"folder": None, "root": None, "scale": None}
     it = iter(argv)
     for tok in it:
         if tok == "--folder":
             out["folder"] = next(it, None)
         elif tok == "--root":
             out["root"] = next(it, None)
+        elif tok == "--scale":
+            out["scale"] = next(it, None)
     if not out["folder"]:
         raise SystemExit("pipeline.py: --folder <dir> is required")
     out["folder"] = os.path.abspath(out["folder"])
@@ -64,9 +66,19 @@ FOLDER_NAME = os.path.basename(FOLDER.rstrip("/"))
 DIRECTIONS = int(os.environ.get("SPRITE_DIRECTIONS", "8"))
 RES = int(os.environ.get("SPRITE_RES", "128"))
 SAMPLES = os.environ.get("SPRITE_SAMPLES")  # None -> leave EEVEE default
-CAMERA_ZOOM_ENV = os.environ.get("SPRITE_ZOOM")      # override auto-fit
-TARGET_HEIGHT_ENV = os.environ.get("SPRITE_TARGET")  # override auto-fit
+# Fixed isometric framing, matching the other sprite scripts in this repo. With
+# a fixed camera, the character scale (below) controls how big it appears in the
+# tile, so a shorter character (e.g. a hobbit at scale 0.7) reads as shorter.
+CAMERA_ZOOM = float(os.environ.get("SPRITE_ZOOM", "4.0"))
+TARGET_HEIGHT = float(os.environ.get("SPRITE_TARGET", "1.1"))
 SHADOW_OPACITY = float(os.environ.get("SPRITE_SHADOW_OPACITY", "0.45"))
+
+# Character object scale after import. Mixamo imports tiny (~0.01) and its
+# geometry is authored at roughly human height (~1.8 m) at scale 1.0, so 1.0 is
+# the default. Pass --scale (or SPRITE_SCALE) to override — e.g. a hobbit wants
+# something below 1.0 so it renders shorter than the humans.
+CHAR_SCALE = float(
+    ARGS.get("scale") or os.environ.get("SPRITE_SCALE") or "1.0")
 
 SPRITES_DIR = os.path.join(ROOT, "sprites")
 SHEET_NAME = f"{FOLDER_NAME}.png"
@@ -326,12 +338,13 @@ def _deformed_z_bounds(meshes, frame):
 
 
 def normalize_scale(armature, meshes):
-    """Reset the tiny Mixamo import to scale 1.0 and stand it on the ground.
+    """Reset the tiny Mixamo import to a known object scale and ground it.
 
     Mixamo often imports characters at 0.01 (or similar) object scale, so they
     render ~2 cm tall. Their raw geometry is authored at roughly 1.8 m when the
-    object scale is 1.0, so we just force scale to 1.0 (rather than measuring),
-    then drop the feet to z=0 so the character stands on the shadow plane.
+    object scale is 1.0, so we force scale to CHAR_SCALE (1.0 by default; pass
+    --scale to override, e.g. 0.7 for a hobbit), then drop the feet to z=0 so
+    the character stands on the shadow plane.
     """
     scene = bpy.context.scene
     frame = int((scene.frame_start + scene.frame_end) / 4) or 1
@@ -340,8 +353,8 @@ def normalize_scale(armature, meshes):
     movable = [armature] + [m for m in meshes if m.parent is not armature]
     for obj in movable:
         old = tuple(round(s, 4) for s in obj.scale)
-        obj.scale = (1.0, 1.0, 1.0)
-        log(f"reset {obj.name} scale {old} -> (1.0, 1.0, 1.0)")
+        obj.scale = (CHAR_SCALE, CHAR_SCALE, CHAR_SCALE)
+        log(f"reset {obj.name} scale {old} -> {CHAR_SCALE}")
     bpy.context.view_layer.update()
 
     # Ground the character: drop its feet to z=0 so it stands on the shadow
@@ -352,16 +365,6 @@ def normalize_scale(armature, meshes):
             obj.location = (obj.location[0], obj.location[1], obj.location[2] - zmin)
         bpy.context.view_layer.update()
         log(f"grounded character (feet were at z={zmin:.3f})")
-
-
-def measure_character(meshes):
-    """World-space height + vertical centre of the posed mesh (post-scale)."""
-    scene = bpy.context.scene
-    frame = int((scene.frame_start + scene.frame_end) / 4) or 1
-    zmin, zmax = _deformed_z_bounds(meshes, frame)
-    height = max(zmax - zmin, 0.1)
-    centre = (zmax + zmin) / 2.0
-    return height, centre
 
 
 # ==========================================================================
@@ -459,22 +462,20 @@ def render_and_stitch(zones, armature, meshes):
     # Diablo-style shadow catcher
     shadow_plane = build_shadow_catcher(scene)
 
-    # Auto-frame the character.
-    height, centre = measure_character(meshes)
-    zoom = float(CAMERA_ZOOM_ENV) if CAMERA_ZOOM_ENV else round(height * 2.3, 3)
-    target_h = float(TARGET_HEIGHT_ENV) if TARGET_HEIGHT_ENV else round(centre, 3)
-    log(f"character height ~{height:.2f}m -> ortho_scale={zoom}, target={target_h}")
-
+    # Fixed isometric framing (same camera for every character, so relative
+    # heights are preserved and the --scale parameter is visible).
+    log(f"framing: ortho_scale={CAMERA_ZOOM}, target={TARGET_HEIGHT}, "
+        f"char_scale={CHAR_SCALE}")
     cam_data = bpy.data.cameras.new("Camera")
     cam = bpy.data.objects.new("Camera", cam_data)
     scene.collection.objects.link(cam)
     scene.camera = cam
     cam_data.type = "ORTHO"
-    cam_data.ortho_scale = zoom
+    cam_data.ortho_scale = CAMERA_ZOOM
     cam.location = (8, -8, 6)
     target = bpy.data.objects.new("CamTarget", None)
     scene.collection.objects.link(target)
-    target.location = (0, 0, target_h)
+    target.location = (0, 0, TARGET_HEIGHT)
     track = cam.constraints.new(type="TRACK_TO")
     track.target, track.track_axis, track.up_axis = target, "TRACK_NEGATIVE_Z", "UP_Y"
     bpy.context.view_layer.update()

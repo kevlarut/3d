@@ -202,7 +202,10 @@ def build_scene(mapping):
     if not armature:
         raise SystemExit("pipeline.py: idle FBX did not contain an armature")
     armature.name = "Armature"  # what the render step looks for
-    armature.rotation_euler = (0, 0, 0)
+    # NOTE: do NOT zero the rotation here. Mixamo FBX are Y-up; Blender's
+    # importer puts a +90deg X rotation on the armature to stand the character
+    # upright in Z. Resetting it to (0,0,0) lays the character flat. We keep the
+    # import orientation and spin directions with a world-Z matrix (below).
 
     idle_action = longest_action(idle_acts)
     if idle_action:
@@ -246,6 +249,10 @@ def build_scene(mapping):
     scene.frame_start = 1
     scene.frame_end = int(cursor)
 
+    # 5b. Normalise the tiny (0.01-scale) Mixamo import to a standard height so
+    # the fixed isometric camera frames it consistently with the other sheets.
+    normalize_scale(armature, meshes)
+
     # 6. Wire the shaded texture into Base Color.
     apply_shaded_texture(meshes)
 
@@ -287,24 +294,74 @@ def apply_shaded_texture(meshes):
 
 
 # ==========================================================================
-# 4. AUTO-FRAME  (measure the character so any rig size is well composed)
+# 4. SCALE + AUTO-FRAME
 # ==========================================================================
+# Mixamo characters import at 0.01 object scale (~2 cm tall), so the manually
+# built .blends in this repo were scaled up by hand. We normalise the rig to a
+# standard height so the fixed isometric camera frames every character the same
+# way, then measure the *deformed* mesh (via the depsgraph) to aim the camera.
+
+TARGET_CHAR_HEIGHT = 1.8  # metres; humanoid Mixamo default once scaled up
+
+
+def _deformed_z_bounds(meshes, frame):
+    """(z_min, z_max) of the posed, armature-deformed geometry at `frame`."""
+    scene = bpy.context.scene
+    scene.frame_set(int(frame))
+    bpy.context.view_layer.update()
+    deg = bpy.context.evaluated_depsgraph_get()
+    zmin, zmax = float("inf"), float("-inf")
+    for mesh in meshes:
+        ev = mesh.evaluated_get(deg)
+        me = ev.to_mesh()
+        mw = mesh.matrix_world
+        for v in me.vertices:
+            z = (mw @ v.co).z
+            zmin = min(zmin, z)
+            zmax = max(zmax, z)
+        ev.to_mesh_clear()
+    if zmin == float("inf"):
+        return 0.0, TARGET_CHAR_HEIGHT
+    return zmin, zmax
+
+
+def normalize_scale(armature, meshes):
+    """Reset the tiny Mixamo import to scale 1.0 and stand it on the ground.
+
+    Mixamo often imports characters at 0.01 (or similar) object scale, so they
+    render ~2 cm tall. Their raw geometry is authored at roughly 1.8 m when the
+    object scale is 1.0, so we just force scale to 1.0 (rather than measuring),
+    then drop the feet to z=0 so the character stands on the shadow plane.
+    """
+    scene = bpy.context.scene
+    frame = int((scene.frame_start + scene.frame_end) / 4) or 1
+    # The mesh(es) inherit the armature transform when parented to it; reset the
+    # armature scale, plus any mesh that is NOT its child.
+    movable = [armature] + [m for m in meshes if m.parent is not armature]
+    for obj in movable:
+        old = tuple(round(s, 4) for s in obj.scale)
+        obj.scale = (1.0, 1.0, 1.0)
+        log(f"reset {obj.name} scale {old} -> (1.0, 1.0, 1.0)")
+    bpy.context.view_layer.update()
+
+    # Ground the character: drop its feet to z=0 so it stands on the shadow
+    # plane instead of being centred on the origin (feet below the floor).
+    zmin, _ = _deformed_z_bounds(meshes, frame)
+    if abs(zmin) > 1e-4:
+        for obj in movable:
+            obj.location = (obj.location[0], obj.location[1], obj.location[2] - zmin)
+        bpy.context.view_layer.update()
+        log(f"grounded character (feet were at z={zmin:.3f})")
+
 
 def measure_character(meshes):
-    """World-space height + vertical centre of the mesh at a mid-idle frame."""
+    """World-space height + vertical centre of the posed mesh (post-scale)."""
     scene = bpy.context.scene
-    scene.frame_set(int((scene.frame_start + scene.frame_end) / 4) or 1)
-    bpy.context.view_layer.update()
-    zs = []
-    for mesh in meshes:
-        mw = mesh.matrix_world
-        for corner in mesh.bound_box:
-            zs.append((mw @ __import__("mathutils").Vector(corner)).z)
-    if not zs:
-        return 1.8, 0.9
-    height = max(zs) - min(zs)
-    centre = (max(zs) + min(zs)) / 2.0
-    return max(height, 0.1), centre
+    frame = int((scene.frame_start + scene.frame_end) / 4) or 1
+    zmin, zmax = _deformed_z_bounds(meshes, frame)
+    height = max(zmax - zmin, 0.1)
+    centre = (zmax + zmin) / 2.0
+    return height, centre
 
 
 # ==========================================================================
@@ -345,7 +402,7 @@ def write_folder_script(zones):
 # ==========================================================================
 
 def render_and_stitch(zones, armature, meshes):
-    from mathutils import Vector
+    from mathutils import Vector, Matrix
 
     if not os.path.exists(SPRITES_DIR):
         os.makedirs(SPRITES_DIR)
@@ -435,8 +492,14 @@ def render_and_stitch(zones, armature, meshes):
     log(f"rendering {DIRECTIONS} dirs x {total_columns} cols x2 passes "
         f"= {DIRECTIONS * total_columns * 2} frames")
 
+    # Spin each direction about world Z. Premultiplying a world-Z rotation onto
+    # the armature's base matrix works whatever the import orientation is (the
+    # character keeps standing upright, unlike setting rotation_euler[2]).
+    base_matrix = armature.matrix_world.copy()
     for i in range(DIRECTIONS):
-        armature.rotation_euler[2] = (angle_step * i) * (3.14159 / 180)
+        angle = (angle_step * i) * (3.14159 / 180)
+        armature.matrix_world = Matrix.Rotation(angle, 4, "Z") @ base_matrix
+        bpy.context.view_layer.update()
         current_col = 0
         for zone in zones:
             zlen = zone["end"] - zone["start"]
@@ -453,7 +516,7 @@ def render_and_stitch(zones, armature, meshes):
                     SPRITES_DIR, f"dir{i}_col{current_col:02d}_shadow.png")
                 bpy.ops.render.render(write_still=True)
                 current_col += 1
-    armature.rotation_euler[2] = 0
+    armature.matrix_world = base_matrix
     shadow_plane.hide_render = True
 
     build_sheet(SHEET_NAME, "", total_columns)

@@ -74,6 +74,21 @@ characters take a value below `1.0`:
 npm run generate -- hobbit-female --scale 0.7
 ```
 
+### Weapons
+
+Optionally place a weapon in the character's right hand with `--weapon`:
+
+```bash
+npm run generate -- hobbit-female --scale 0.7 --weapon sword
+```
+
+`sword` builds a procedural "Sting"-style Elvish short sword (straight,
+double-edged, tapered blade with Roman-spatha proportions; short crossguard;
+leather grip; round pommel) and bone-parents it to `mixamorig:RightHand`, so it
+follows every animation. Placement is tuned for the standard Mixamo rig and can
+be nudged with `SPRITE_W_LOC` / `SPRITE_W_ROT` / `SPRITE_W_LEN`. See
+`scripts/weapon.py`.
+
 ### Requirements
 
 - **Blender 4.2+** — found via the `BLENDER` env var, then your `PATH`, then the
@@ -89,6 +104,8 @@ the generator will use it instead of a Blender binary.
 | Setting | How | Default |
 | --- | --- | --- |
 | Character scale | `--scale N` / `SPRITE_SCALE` | `1.0` |
+| Right-hand weapon | `--weapon sword` / `SPRITE_WEAPON` | none |
+| Weapon placement | `SPRITE_W_LOC` / `SPRITE_W_ROT` / `SPRITE_W_LEN` | tuned defaults |
 | FBX role mapping | `actions.json` in the folder | keyword auto-detect |
 | Blender binary | `BLENDER` | PATH / macOS app |
 | bpy fallback | `SPRITE_PYTHON` | — |

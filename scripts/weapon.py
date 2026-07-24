@@ -25,7 +25,7 @@ def _env_vec(name, default):
 # Defaults dialed in visually for the hobbit-female sword-and-shield rig.
 DEFAULT_LOC = _env_vec("SPRITE_W_LOC", (0.0, 0.0, 0.0))
 DEFAULT_ROT_DEG = _env_vec("SPRITE_W_ROT", (-40.0, 0.0, 0.0))
-BLADE_HALF_LEN = float(os.environ.get("SPRITE_W_LEN", "0.34"))
+BLADE_HALF_LEN = float(os.environ.get("SPRITE_W_LEN", "0.46"))
 
 
 def _material(bpy, name, color, metallic, rough):
@@ -52,7 +52,7 @@ def make_sting(bpy):
     bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0.05 + BLADE_HALF_LEN, 0))
     blade = bpy.context.active_object
     blade.name = "Blade"
-    blade.scale = (0.038, BLADE_HALF_LEN, 0.011)  # width, length, thickness
+    blade.scale = (0.075, BLADE_HALF_LEN, 0.016)  # width, length, thickness
     bpy.ops.object.transform_apply(scale=True)
     me = blade.data
     bm = bmesh.new()
@@ -75,13 +75,13 @@ def make_sting(bpy):
     bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0.05, 0))
     guard = bpy.context.active_object
     guard.name = "Guard"
-    guard.scale = (0.11, 0.018, 0.022)
+    guard.scale = (0.20, 0.026, 0.030)
     bpy.ops.object.transform_apply(scale=True)
     guard.data.materials.append(gold)
     parts.append(guard)
 
     # Grip: cylinder below the guard (-Y).
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.016, depth=0.10, location=(0, 0, 0))
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.022, depth=0.12, location=(0, 0, 0))
     grip = bpy.context.active_object
     grip.name = "Grip"
     grip.rotation_euler = (math.radians(90), 0, 0)  # align cylinder axis to Y
@@ -91,7 +91,7 @@ def make_sting(bpy):
     parts.append(grip)
 
     # Pommel: small sphere at the grip end.
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.020, location=(0, -0.062, 0))
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.030, location=(0, -0.075, 0))
     pom = bpy.context.active_object
     pom.name = "Pommel"
     pom.data.materials.append(gold)

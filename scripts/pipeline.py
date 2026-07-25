@@ -285,8 +285,8 @@ def attach_weapon(armature):
         log(f"unknown weapon '{WEAPON}', skipping")
         return
     import weapon as weapon_mod
-    sword, bone = weapon_mod.attach_to_hand(bpy, armature)
-    log(f"attached sword to {bone}")
+    sword, bone = weapon_mod.attach_to_hand(bpy, armature, folder=FOLDER)
+    log(f"attached sword ({sword.name}) to {bone}")
 
 
 def apply_shaded_texture(meshes):

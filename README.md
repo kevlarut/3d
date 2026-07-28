@@ -82,12 +82,25 @@ Optionally place a weapon in the character's right hand with `--weapon`:
 npm run generate -- hobbit-female --scale 0.7 --weapon sword
 ```
 
-`sword` builds a procedural "Sting"-style Elvish short sword (straight,
-double-edged, tapered blade with Roman-spatha proportions; short crossguard;
-leather grip; round pommel) and bone-parents it to `mixamorig:RightHand`, so it
-follows every animation. Placement is tuned for the standard Mixamo rig and can
-be nudged with `SPRITE_W_LOC` / `SPRITE_W_ROT` / `SPRITE_W_LEN`. See
-`scripts/weapon.py`.
+`sword` puts a "Sting"-style Elvish short sword in `mixamorig:RightHand` and
+bone-parents it there, so it follows every animation.
+
+It picks the sword from one of two places:
+
+* **A modelled `sting-sword.obj` in the character folder** — preferred. A real
+  four-part sculpt (`Manche`/`Lame`/`Pommeau`/`Garde` — grip/blade/pommel/
+  guard). Its seat in the palm is baked into `scripts/weapon.py` as a bone-local
+  transform, so re-running the generator restores the fit exactly. Because the
+  transform is bone-local it rides the armature's scale — a character built at a
+  different `--scale` gets a proportionally sized sword.
+* **A procedural fallback**, used when no such OBJ is there: a straight,
+  double-edged, tapered blade with Roman-spatha proportions, short crossguard,
+  leather grip and round pommel, built from primitives. Its placement can be
+  nudged with `SPRITE_W_LOC` / `SPRITE_W_ROT` / `SPRITE_W_LEN`.
+
+To re-fit a modelled sword: position it by hand in the `.blend` on an idle
+frame, then update `OBJ_LOC` / `OBJ_ROT_RAD` / `OBJ_SCALE` in
+`scripts/weapon.py` with the object's bone-local transform.
 
 ### Requirements
 

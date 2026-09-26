@@ -10,32 +10,70 @@
 
 ## 1. High Concept
 
-You are a carter for hire in a muddy, lawless medieval countryside. Load your
-wagon in one settlement, then race it along rutted roads, over rickety bridges
-and down switchback mountain passes to deliver the goods somewhere else — on
-time and in one piece. Your horses are fast, your wagon is top-heavy, and
-the woods are full of highwaymen who would very much like your cargo.
+It's 1347. The roads are mud, the maps are mostly guesses, and somebody
+needs forty live geese, a cathedral bell and a wheel of cheese the size of a
+millstone in Hogsbottom **by vespers**. That somebody is paying *you*.
 
-**Elevator pitch:** *Crazy Taxi* meets *Euro Truck Simulator* in the age of
-plague and potholes — an arcade driving game where the vehicle is a
-horse-drawn cart that leans, lurches and **cants** onto two wheels every time
-you take a corner too hot.
+You are a medieval long-haul trucker: a horse-drawn wagon, a team of horses
+with opinions, and a reputation that depends on getting absurd cargo to
+absurd places on time and (mostly) intact. You'll corner on two wheels past
+the abbey, jump a collapsing drawbridge, outrun a bandit gang that insists on
+singing its demands, and explain to a very calm duke why his portrait now
+has a hoofprint on it.
+
+**Elevator pitch:** *Crazy Taxi* meets *Monty Python and the Holy Grail*.
+It's an arcade delivery game where the truck is a wobbly horse-drawn cart,
+the freeway is a goat track, and the cargo is always, somehow, a problem.
+
+**Taglines (for the store page / trailer):**
+- *"Ye Olde Freight. Ye Olde Deadline."*
+- *"Two horses. Four wheels. Usually."*
+- *"The cheese must reach Hogsbottom."*
+- *"Highway robbery was invented for people like you."*
 
 ### Design Pillars
 
-1. **The wagon is the star.** Handling should be heavy, lurching and tippy:
-   momentum you have to *manage*, not a car you point. Taking a sharp turn
-   should feel like a gamble — the wagon rocks up onto two wheels, crates
-   slide, the horses scream, and you either save it or you don't.
-2. **Every delivery is a small story.** Time pressure, fragile cargo, weather,
-   and bandits combine into short runs (3–8 minutes) that play out differently
-   every time.
-3. **Risk vs. reward, always.** The fast road is the dangerous road. The
-   shortcut through the bog saves two minutes and might cost you a wheel.
-   Payment rewards speed *and* care — you can rarely maximize both.
-4. **Grounded, grimy humor.** The world takes itself seriously; the situations
-   don't. Chickens explode out of crates, monks shout at you for speeding past
-   the abbey, and the highwaymen have union grievances.
+1. **Zany first.** Every system should be able to make something funny
+   happen. Physics exaggerates, cargo misbehaves, NPCs overreact, and the
+   world plays it completely straight while all of this happens around it.
+   If a player has a story to tell a friend after a run, we did it right.
+2. **The wagon is a lovable disaster.** Handling is heavy, lurching and
+   tippy: momentum you *wrangle*, not a car you point. Every sharp turn is a
+   gamble. The wagon rocks up onto two wheels, crates slide, the horses
+   scream, and you either save it gloriously or fail gloriously. Both
+   should be fun to watch.
+3. **The cargo is a character.** Whatever you're hauling is never just
+   weight. It squawks, leaks, rolls away, catches fire, gives you directions,
+   or tries to escape. Each delivery gets its personality from the cargo.
+4. **Risk vs. reward, always.** The fast road is the dangerous road. The
+   shortcut through the jousting tournament saves two minutes and might cost
+   you a wheel (and some dignity). Payment rewards speed *and* care, and you
+   can rarely maximize both.
+5. **Weird, but with rules.** The weirdness follows its own consistent
+   logic, so players can *plan around* it: geese always chase, cheese always
+   rolls downhill, monks always complain. Surprise comes from how these
+   systems collide, not from randomness.
+
+### What a run looks like (sample moments)
+
+These are the kinds of stories the systems should create. They're for the
+pitch deck and the trailer.
+
+- You take the hairpin above Wettering on two wheels. The beehives shift and
+  the wagon slams back down. You arrive on time with a perfect-condition
+  bonus and are then chased through town by an extremely angry swarm.
+- A bandit gang blocks the bridge. Their leader explains, at length, that
+  under the new Brigands' Charter they're entitled to a 15% cut and a
+  lunch break. You pay the cut, then run them over during the lunch break.
+- Your giant cheese wheel breaks its lashings on a downhill stretch and
+  overtakes you. You now have two goals: beat the cheese to the bottom of
+  the hill, and don't let the cheese reach the river.
+- You are hired to deliver a live bear to the Duke's menagerie. The bear is
+  fine. The bear is calm. The bear gets out at the Tollbridge gate, and the
+  toll is waived.
+- Halfway through a relic delivery, the relic (a saint's finger bone)
+  starts *pointing*. It is pointing at a shortcut. The shortcut goes through
+  a monastery's dining hall.
 
 ---
 
@@ -77,7 +115,7 @@ This is the most important system in the game and should be prototyped first.
 | Wheel brake (lever)  | A / Cross           | Space           | Locks rear wheels — skids, used for tight "handbrake" turns |
 | Lean                 | Right stick L/R     | Q / E           | Driver throws weight to counter a tip |
 | Brace cargo          | B / Circle (hold)   | Shift           | Reduces cargo damage while held; can't lean at the same time |
-| Horn / shout         | Y / Triangle        | H               | Scatters livestock and pedestrians; alerts guards |
+| Horn / shout         | Y / Triangle        | H               | Blows a crumhorn. Scatters livestock and pedestrians; upgradeable to a war horn, a church bell or a bard who screams |
 | Look back / aim      | Right stick click   | Mouse           | Used with weapons and to check pursuers |
 
 ### 3.2 Gaits (the "gears")
@@ -94,7 +132,9 @@ Horses don't have a throttle, they have gaits. Each tap of *urge on* shifts up;
 | Gallop  | Very fast| Drains fast   | Very wide | High tip risk; horses can bolt if pushed when exhausted |
 
 Stamina is shown as a lather/sweat meter on the horses themselves (diegetic)
-plus a small HUD bar.
+plus a small HUD bar. Push exhausted horses and they get *opinions*: they
+stop to eat a hedge, take a scenic detour, or glare at you over their
+shoulder until you rein in.
 
 ### 3.3 Physics feel — "canting" and tipping
 
@@ -112,9 +152,12 @@ hitch/tongue.
 - **Recovery:** Lean into the high side, ease off the gait, or hit a bump at
   the right moment to slam back down (with a satisfying crash and some cargo
   damage).
-- **Tipping over:** The wagon rolls, cargo spills across the road, and the
-  horses stop (or bolt, if spooked). You lose time righting the wagon with a
-  quick QTE, and spilled cargo must be collected or written off.
+- **Tipping over:** The wagon rolls in slow motion, cargo spills across the
+  road, and the horses stop (or bolt, if spooked). Nearby peasants
+  help you heave it upright in a quick button-mash sequence, for a fee, while
+  offering unhelpful advice. Spilled cargo must be collected or written
+  off. Spectacular crashes are the game's other reward: they get a
+  replay and a title card ("THE GREAT TURNIP CALAMITY OF MUCKFORD").
 - **Load matters:** Heavy, low cargo (stone, iron ingots) is stable. Tall,
   light cargo (hay, stacked barrels, a bishop's pipe organ) is extremely tippy.
   Cargo loaded badly at the start of the run makes the wagon lean one way.
@@ -124,7 +167,9 @@ hitch/tongue.
 
 **Tuning target:** it should feel *slightly* out of control at speed, like a
 shopping trolley with a heavy load, but never random. A skilled player should
-be able to thread a canter-speed S-bend on two wheels on purpose.
+be able to thread a canter-speed S-bend on two wheels on purpose. Physics
+should be *exaggerated*: bouncier suspension, bigger air and floppier
+cargo than reality, like a cartoon playing out in a realistic-looking world.
 
 ### 3.4 Terrain
 
@@ -176,13 +221,21 @@ Each cargo type has a set of properties that shape how the run plays:
 | Pottery & glassware | Light | Very high | No | Low | Every bump hurts |
 | Fresh fish | Medium | Low | **Fast** | Low | Pure time trial; attracts cats and gulls |
 | Live chickens / pigs | Medium | Low | No | Low | Escape through damaged crates; can be recaptured |
-| Hay bales | Light | Low | No | Very low | Very tall — extremely tippy; flammable |
+| Hay bales | Light | Low | No | Very low | Very tall, so extremely tippy; flammable |
 | Iron ingots | Very heavy | None | No | Medium | Super stable, super slow |
-| Tax silver | Medium | None | No | **Very high** | Every highwayman in the county wants it |
-| Holy relic | Light | High | No | High | A monk rides along and complains about your driving |
-| Alchemist's reagents | Light | High | No | Low | Big bumps cause small explosions |
+| Tax silver | Medium | None | No | **Very high** | Every highwayman in the county wants it, and so does the tax collector who hired you |
+| Holy relic | Light | High | No | High | A monk rides along and complains about your driving. The relic sometimes points at shortcuts |
+| Alchemist's reagents | Light | High | No | Low | Big bumps cause small explosions; very big bumps cause purple ones |
 | Passengers (coach) | Medium | "Comfort" | No | Medium | Passengers get sick, scream, or tip for a thrill ride |
 | Beehives | Light | Medium | No | None | Damage releases bees that chase *you* |
+| Giant cheese wheel | Very heavy | Low | Slowly | Medium | Round. If it breaks free, it rolls, and it's faster than you downhill |
+| Forty live geese | Medium | Low | No | Low | Escaped geese don't flee; they *attack*, including the horses |
+| A live bear | Very heavy | "Mood" | No | None | Keep it calm (smooth driving) or it starts rocking the wagon itself. Bandits won't touch you |
+| Cathedral bell | Extreme | Low | No | Low | Every bump *BONGS*, which alerts bandits for miles. Needs a four-horse team |
+| The Duke's portrait | Light | Very high | No | Medium | Must arrive with no damage at all. A tiny hoofprint costs you half the fee |
+| Catapult (flat-pack) | Heavy | Medium | No | Medium | Very late game: can be *used* once, at the cost of the delivery bonus |
+| A wedding party | Medium | "Comfort" | **Yes** (the ceremony starts at noon) | Low | The bride steers from the back seat. Also, the groom is missing |
+| Dragon egg (probably) | Light | Very high | Hatching | Very high | Must be kept warm. Drive through villages with fires or it cools. Do not let it hatch in the wagon |
 
 ### 4.3 Cargo damage model
 
@@ -209,6 +262,9 @@ Each cargo type has a set of properties that shape how the run plays:
 | **Smuggling** | Illegal cargo; avoid toll gates and town guards as well as bandits. |
 | **Rescue / recovery** | Retrieve cargo spilled by another carter before the bandits do. |
 | **Royal commission** | Story missions with unique set pieces. |
+| **Moving day** | Haul an entire family and their furniture. Grandmother rides on top of the wardrobe and refuses to get down. |
+| **Runaway recovery** | Something escaped (a cheese, a pig, a small knight). Herd it into the wagon before it reaches the river. |
+| **Getaway driver** | The client is fleeing a witch trial and they are *definitely* not a witch. The mob is on foot, then on horseback, then has a catapult. |
 
 ---
 
@@ -263,6 +319,11 @@ dopamine hit.
 - **Pacifist Route** — completed a dangerous route without harming anyone.
 - **Local Hero** — delivered through a town without hitting any pedestrians/livestock.
 - **Tip** — passengers and some clients tip for a thrilling (or smooth) ride.
+- **Flying Fowl** — a chicken spent at least 5 seconds airborne.
+- **Divine Intervention** — survived a near-tip in the shadow of a church.
+- **Sheep Slalom** — drove through a flock without touching a single sheep.
+- **Gatecrasher** — entered a town through the gate *as it was closing*.
+- **Heir Apparent** — accidentally knocked a jousting knight off his horse.
 
 ### 5.4 Penalties
 
@@ -301,7 +362,11 @@ daggers, 0–5) shows the current threat level.
 | **Mounted raiders** | Chase on horseback, try to cut lashings and grab cargo | Outrun, ram, or use weapons; they tire faster than a team |
 | **Archers** | Fire from ridges; arrows damage cargo and horses | Speed and cover; a guard with a shield helps |
 | **Rival carters** | Race you for the same contract, shunt you into ditches | Out-drive them; ram back |
-| **The Gentleman Bandit** (boss) | Recurring charismatic villain with set-piece ambushes | Story encounters |
+| **Kobold swarm** | A dozen tiny thieves clamber aboard like ants and carry off crates one at a time | Shake them off with sharp turns and bumps |
+| **The Singing Highwaymen** | Block the road and perform their demands as a full musical number | Pay them, applaud, or drive off mid-chorus (they take this personally) |
+| **The Brigands' Guild** | Unionized bandits: cut-rate robberies, strict lunch breaks, lots of paperwork | Know the rules. They can't rob you during a lunch break |
+| **Goose gang** | Feral geese that have organized | Nothing. Only running away works |
+| **The Gentleman Bandit** (boss) | Recurring charismatic villain with set-piece ambushes; always leaves a thank-you note | Story encounters |
 
 **Encounter resolution options:**
 
@@ -340,6 +405,16 @@ this slot a second local/online player).
 - **Wildlife** — wolves chase the horses at night in the forest; a bear
   sometimes simply sits in the road.
 - **Toll gates & guards** — slow down and pay, or smash through and gain a bounty.
+- **Road events (random, weird):**
+  - A jousting tournament whose tilt runs straight *across* the road.
+  - A religious procession moving at the speed of a funeral, all the way
+    to the next town.
+  - A trebuchet crew testing its range. Some landing zones are your road.
+  - A dancing plague: the villagers will not stop dancing and will not get
+    out of the way.
+  - A knight errant who challenges your wagon to single combat.
+  - A town crier who runs alongside you shouting the news, including news
+    about you.
 
 ---
 
@@ -347,10 +422,13 @@ this slot a second local/online player).
 
 ### 7.1 Setting
 
-A fictional, slightly exaggerated late-medieval kingdom: muddy, damp,
-cheerful in the villages and menacing in the woods. Lightly fantastical —
-there may be a wizard or a kobold or two — but the focus is on roads,
-weather and people.
+A fictional, cheerfully ridiculous late-medieval kingdom: muddy, damp,
+full of people with very specific jobs and very strong opinions. It's
+lightly fantastical (wizards, kobolds, a dragon egg that may or may not be
+one), but the joke is that everyone treats medieval freight logistics
+with complete seriousness. There are guild regulations for cart widths,
+a Ministry of Roads that has never built a road, and a thriving trade in
+extremely specific goods ("left-handed turnips").
 
 ### 7.2 Structure
 
@@ -411,6 +489,9 @@ Wettering**, **Abbot's Crossing** (abbey — relic contracts), **Hogsbottom**
 - **Lantern:** better night visibility, reveals ambushes sooner.
 - **Defenses:** side boards (arrows), caltrop box, crossbow mount.
 - **Cosmetics:** paint, banners, bells, a little pennant with your carter's mark.
+- **Ridiculous upgrades (late game):** a sail for windy downhill stretches, a
+  tame goose as a guard animal, a trebuchet that launches you over the river
+  (once), and a fake second wagon made of painted canvas to confuse bandits.
 
 ### 8.3 Horses
 
@@ -478,18 +559,29 @@ Keep the HUD minimal and period-flavored (inked parchment, wax seals).
   panicked whinnies near tipping.
 - **Cargo:** chickens, clinking glass, sloshing wine — every cargo type
   sounds different, so damage is audible.
-- **Music:** lute/hurdy-gurdy/drum folk tracks that intensify with speed and
-  bandit threat; a tavern band plays the delivery tally.
-- **Barks:** the driver mutters and swears; passengers and monks comment;
-  bandits shout threats and complaints.
+- **Music:** high-energy medieval folk (lute, hurdy-gurdy, crumhorn,
+  drums), played like a chase-scene soundtrack. It intensifies with speed and
+  bandit threat, and a tavern band plays the delivery tally. A near-tip
+  cuts the music to a single held note until you land it.
+- **Barks:** the driver mutters and swears in medieval curses ("God's
+  teeth!"); passengers and monks comment; bandits shout threats and
+  complaints about their working conditions. A narrator (a pompous
+  royal chronicler) occasionally describes your worst crashes as if they
+  were great battles.
 
 ---
 
 ## 12. Art Direction
 
-- **Style:** stylized-realistic 3D. Chunky, readable silhouettes (the wagon
-  and its lean must read clearly at a glance), painterly textures, strong
-  weather and lighting.
+- **Style:** stylized-realistic 3D with cartoon timing. The world looks
+  grounded and painterly; the *motion* is exaggerated, with squash-and-stretch
+  on crashes, cargo that flops and flies, and horses with expressive faces.
+  Chunky, readable silhouettes (the wagon and its lean must read clearly at
+  a glance) and strong weather and lighting.
+- **Illuminated-manuscript flourishes:** UI, title cards, crash replays and
+  the map borrow from medieval marginalia, including the famous doodles of
+  knights fighting snails and rabbits with swords. Those drawings are the
+  game's tonal north star: very medieval and very weird.
 - **Palette:** warm earth tones in villages; cold greens and greys in the
   forest; muted blues in the fens; stark white/grey in the mountains.
 - **Readability rules:** roads must always be distinguishable from
@@ -577,5 +669,7 @@ wagon fun on its own?**
   career "day"?
 - How much combat is too much? Keep a dial here and playtest both extremes.
 - Is the 2-wheeled farm cart fun or just frustrating?
-- Tone check: how far toward slapstick (exploding alchemy crates, geese
-  wizards) do we want to go?
+- Where is the ceiling on weirdness? The current rule is "anything goes, as
+  long as it follows consistent rules and the world plays it straight."
+  Dragons that actually hatch might be a step too far, or they might be the
+  final region.

@@ -617,9 +617,9 @@ canopy), cargo props, settlements, and road/terrain kits.
 
 ## 13. Technical Notes
 
-- **Engine:** Unity or Godot 4 recommended (both have solid wheel/vehicle
-  physics and good Blender import). Existing Blender/FBX tooling here feeds
-  either one.
+- **Engine:** Unity 6 with URP, targeting Steam (Windows/macOS/Linux) and
+  iOS from one project. Full rationale, platform details and the input
+  design for keyboard, gamepad and touch are in [`tech-stack.md`](tech-stack.md).
 - **Wagon physics:** rigid-body chassis with raycast wheels (like a
   standard arcade car), plus:
   - Horse team as a kinematic "tractor" steered by the player, attached

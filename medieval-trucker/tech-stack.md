@@ -342,6 +342,23 @@ would be a fine choice for a PC-first game; the iOS target tips it.
 
 ---
 
+## 11a. Licensing and cost (as of mid-2026; verify before committing)
+
+| | Unity 6 | Godot 4 | Unreal 5 |
+|---|---|---|---|
+| License | Proprietary | MIT (open source) | Proprietary |
+| Cost to start | Free (Personal) | Free | Free |
+| Cost at scale | Pro seat subscription once company revenue/funding exceeds $200K in trailing 12 months (~$2,200/seat/yr at last pricing). No per-install Runtime Fee (cancelled before Unity 6) | None. No royalties, thresholds or seat fees | 5% royalty on gross revenue above $1M lifetime per product |
+| Logo / splash required | No, on Unity 6+ (all tiers). Required on Personal for 2022 and earlier | No | No |
+| Source access | Read-only reference source; can't ship a modified engine without a separate license | Full; you can modify and ship the engine | Full source; can modify and ship |
+| Console ports later | Direct support | Through third parties (e.g. W4 Games) | Direct support |
+
+**Bottom line:** all three are free to build and ship this game. Godot is
+the only one that stays free at any revenue. Unity's splash requirement is
+gone on Unity 6. Unreal's royalty only matters after $1M per product.
+
+---
+
 ## 12. Risks
 
 | Risk | Mitigation |
